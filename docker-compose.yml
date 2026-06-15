@@ -32,10 +32,11 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: curl --fail http://localhost:3000/healthz
+      test: curl --fail http://localhost:3000/healthz || exit 1
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 60
+      start_period: 300s
     restart: always
 
   worker:
