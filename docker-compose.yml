@@ -68,7 +68,7 @@ services:
   db:
     image: postgres:16
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - twenty-db-data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${PG_DATABASE_NAME:-default}
       POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD:-postgres}
@@ -91,5 +91,5 @@ services:
       retries: 10
 
 volumes:
-  db-data:
+  twenty-db-data:
   server-local-data:
