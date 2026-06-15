@@ -3,8 +3,6 @@ name: twenty
 services:
   server:
     image: twentycrm/twenty:${TAG:-latest}
-    command: >
-      sh -c "curl -sL -o /app/packages/twenty-server/dist/front/images/icons/android/android-launchericon-192-192.png https://mme.com.vn/wp-content/uploads/2023/01/mme-thiet-ke-website-logo-vuong.png || true; node dist/main"
     volumes:
       - server-local-data:/app/packages/twenty-server/.local-storage
     ports:
