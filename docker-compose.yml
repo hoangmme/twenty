@@ -6,7 +6,7 @@ services:
     command: >
       sh -c "curl -sL -o /app/packages/twenty-server/dist/front/images/icons/android/android-launchericon-192-192.png https://mme.com.vn/wp-content/uploads/2023/01/mme-thiet-ke-website-logo-vuong.png || true; grep -q 'hide-enterprise' /app/packages/twenty-server/dist/front/index.html || sed -i 's|</head>|<style id=\"hide-enterprise\">a[href*=\"enterprise\"] { display: none !important; }</style></head>|' /app/packages/twenty-server/dist/front/index.html; node dist/main"
     volumes:
-      - server-local-data-v4:/app/packages/twenty-server/.local-storage
+      - server-local-data-v5:/app/packages/twenty-server/.local-storage
     ports:
       - "3020:3000"
     networks:
@@ -55,7 +55,7 @@ services:
   worker:
     image: twentycrm/twenty:${TAG:-latest}
     volumes:
-      - server-local-data-v4:/app/packages/twenty-server/.local-storage
+      - server-local-data-v5:/app/packages/twenty-server/.local-storage
     command: ["yarn", "worker:prod"]
     environment:
       PG_DATABASE_URL: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/${PG_DATABASE_NAME:-default}
@@ -87,7 +87,7 @@ services:
   db:
     image: postgres:16
     volumes:
-      - twenty-db-data-v4:/var/lib/postgresql/data
+      - twenty-db-data-v5:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${PG_DATABASE_NAME:-default}
       POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD:-postgres}
@@ -110,8 +110,8 @@ services:
       retries: 10
 
 volumes:
-  twenty-db-data-v4:
-  server-local-data-v4:
+  twenty-db-data-v5:
+  server-local-data-v5:
 
 networks:
   dokploy-network:
