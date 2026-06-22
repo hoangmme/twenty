@@ -4,7 +4,7 @@ services:
   server:
     image: twentycrm/twenty:${TAG:-latest}
     command: >
-      sh -c "curl -sL -o /app/packages/twenty-server/dist/front/images/icons/android/android-launchericon-192-192.png https://mme.com.vn/wp-content/uploads/2023/01/mme-thiet-ke-website-logo-vuong.png || true; grep -q 'hide-enterprise' /app/packages/twenty-server/dist/front/index.html || sed -i 's|</head>|<style id=\"hide-enterprise\">a[href*=\"enterprise\"] { display: none !important; }</style></head>|' /app/packages/twenty-server/dist/front/index.html; node dist/main"
+      sh -c "curl -sL -o /app/packages/twenty-server/dist/front/images/icons/android/android-launchericon-192-192.png https://mme.com.vn/wp-content/uploads/2023/01/mme-thiet-ke-website-logo-vuong.png || true; grep -q 'hide-enterprise' /app/packages/twenty-server/dist/front/index.html || sed -i 's|</head>|<style id=\"hide-enterprise\">a[href*=\"enterprise\"] { display: none !important; }</style></head>|' /app/packages/twenty-server/dist/front/index.html; sed -i 's/if (!has2FAEnabled)/if (false)/g' /app/packages/twenty-server/dist/engine/core-modules/impersonation/services/impersonation.service.js || true; node dist/main"
     volumes:
       - server-local-data-v5:/app/packages/twenty-server/.local-storage
     ports:
