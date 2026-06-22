@@ -9,6 +9,15 @@ services:
       - server-local-data-v3:/app/packages/twenty-server/.local-storage
     ports:
       - "3020:3000"
+    networks:
+      - dokploy-network
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.twenty-saas.rule=HostRegexp(`{subdomain:[a-zA-Z0-9-]+}.mme.vn`)"
+      - "traefik.http.routers.twenty-saas.entrypoints=websecure"
+      - "traefik.http.routers.twenty-saas.tls=true"
+      - "traefik.http.services.twenty-saas.loadbalancer.server.port=3000"
     environment:
       NODE_PORT: 3000
       PG_DATABASE_URL: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/${PG_DATABASE_NAME:-default}
@@ -103,3 +112,7 @@ services:
 volumes:
   twenty-db-data-v3:
   server-local-data-v3:
+
+networks:
+  dokploy-network:
+    external: true
