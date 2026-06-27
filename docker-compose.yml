@@ -4,11 +4,24 @@ services:
   server:
     image: twentycrm/twenty:${TAG:-latest}
     command: >
-      sh -c "curl -sL -o /app/packages/twenty-server/dist/front/images/icons/android/android-launchericon-192-192.png https://mme.com.vn/wp-content/uploads/2023/01/mme-thiet-ke-website-logo-vuong.png || true; grep -q 'hide-enterprise' /app/packages/twenty-server/dist/front/index.html || sed -i 's|</head>|<style id=\"hide-enterprise\">a[href*=\"enterprise\"] { display: none !important; }</style></head>|' /app/packages/twenty-server/dist/front/index.html; sed -i \"s/randomSuffix = suffixes\\[Math.floor(Math.random() \\* suffixes.length)\\]/randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)] + '-crm'/g\" /app/packages/twenty-server/dist/engine/core-modules/domain/subdomain-manager/utils/generate-random-subdomain.util.js || true; if [ ! -f /app/packages/twenty-server/.local-storage/2fa_wiped_v8.txt ]; then node -e \"const { Client } = require('pg'); const Redis = require('ioredis'); const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); (async () => { if (process.env.REDIS_URL) { try { const r = new Redis(process.env.REDIS_URL); await r.flushall(); console.log('Redis flushed'); r.disconnect(); } catch (e) { console.log('Redis error:', e.message); } } for (let i = 0; i < 15; i++) { const c = new Client({ connectionString: process.env.PG_DATABASE_URL }); try { await c.connect(); try { await c.query('DELETE FROM \\\"core\\\".\\\"twoFactorAuthenticationMethod\\\"'); console.log('2FA wiped camelCase'); } catch (e) { await c.query('DELETE FROM \\\"core\\\".\\\"two_factor_authentication_method\\\"'); console.log('2FA wiped snakeCase'); } c.end(); break; } catch (err) { console.log('DB retry ' + i + ': ' + err.message); c.end(); await sleep(2000); } } })().catch(console.error);\" && touch /app/packages/twenty-server/.local-storage/2fa_wiped_v8.txt; fi; node dist/main"
+      sh -c "curl -sL -o /app/packages/twenty-server/dist/front/images/icons/android/android-launchericon-192-192.png https://mme.com.vn/wp-content/uploads/2023/01/mme-thiet-ke-website-logo-vuong.png || true; grep -q 'hide-enterprise' /app/packages/twenty-server/dist/front/index.html || sed -i 's|</head>|<style id=\"hide-enterprise\">a[href*=\"enterprise\"] { display: none !important; }</style></head>|' /app/packages/twenty-server/dist/front/index.html; SUBDOMAIN_FILE=/app/packages/twenty-server/dist/engine/core-modules/domain/subdomain-manager/utils/generate-random-subdomain.util.js; while grep -Fq \"+ '-crm' + '-crm'\" $$SUBDOMAIN_FILE; do sed -i \"s/+ '-crm' + '-crm'/+ '-crm'/g\" $$SUBDOMAIN_FILE; done; grep -Fq \"randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)] + '-crm'\" $$SUBDOMAIN_FILE || sed -i \"s/randomSuffix = suffixes\\[Math.floor(Math.random() \\* suffixes.length)\\]/randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)] + '-crm'/g\" $$SUBDOMAIN_FILE; if [ ! -f /app/packages/twenty-server/.local-storage/2fa_wiped_v8.txt ]; then node -e \"const { Client } = require('pg'); const Redis = require('ioredis'); const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); (async () => { if (process.env.REDIS_URL) { try { const r = new Redis(process.env.REDIS_URL); await r.flushall(); console.log('Redis flushed'); r.disconnect(); } catch (e) { console.log('Redis error:', e.message); } } for (let i = 0; i < 15; i++) { const c = new Client({ connectionString: process.env.PG_DATABASE_URL }); try { await c.connect(); try { await c.query('DELETE FROM \\\"core\\\".\\\"twoFactorAuthenticationMethod\\\"'); console.log('2FA wiped camelCase'); } catch (e) { await c.query('DELETE FROM \\\"core\\\".\\\"two_factor_authentication_method\\\"'); console.log('2FA wiped snakeCase'); } c.end(); break; } catch (err) { console.log('DB retry ' + i + ': ' + err.message); c.end(); await sleep(2000); } } })().catch(console.error);\" && touch /app/packages/twenty-server/.local-storage/2fa_wiped_v8.txt; fi; node dist/main"
     volumes:
       - server-local-data-v7:/app/packages/twenty-server/.local-storage
     ports:
       - "3020:3000"
+    networks:
+      - dokploy-network
+      - default
+    labels:
+      - "traefik.enable=true"
+      # Cloudflare Flexible terminates HTTPS and forwards HTTP to this router.
+      # Only claim the CRM entrypoint and flattened workspace hosts so this
+      # deployment does not steal every other *.mme.vn service in Dokploy.
+      - 'traefik.http.routers.mmetwenty-flat-crm.rule=Host(`crm.mme.vn`) || HostRegexp(`^[a-z0-9-]+-crm\.mme\.vn$`)'
+      - "traefik.http.routers.mmetwenty-flat-crm.entrypoints=web"
+      - "traefik.http.routers.mmetwenty-flat-crm.priority=100"
+      - "traefik.http.routers.mmetwenty-flat-crm.service=mmetwenty-flat-crm"
+      - "traefik.http.services.mmetwenty-flat-crm.loadbalancer.server.port=3000"
     environment:
       NODE_PORT: 3000
       PG_DATABASE_URL: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/${PG_DATABASE_NAME:-default}
