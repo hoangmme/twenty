@@ -4,7 +4,7 @@ services:
   server:
     image: twentycrm/twenty:${TAG:-latest}
     command: >
-      sh -c "curl -sL -o /app/packages/twenty-server/dist/front/images/icons/android/android-launchericon-192-192.png https://mme.com.vn/wp-content/uploads/2023/01/mme-thiet-ke-website-logo-vuong.png || true; grep -q 'hide-enterprise' /app/packages/twenty-server/dist/front/index.html || sed -i 's|</head>|<style id=\"hide-enterprise\">a[href*=\"enterprise\"] { display: none !important; }</style></head>|' /app/packages/twenty-server/dist/front/index.html; SUBDOMAIN_FILE=/app/packages/twenty-server/dist/engine/core-modules/domain/subdomain-manager/utils/generate-random-subdomain.util.js; while grep -Fq \"+ '-crm' + '-crm'\" $$SUBDOMAIN_FILE; do sed -i \"s/+ '-crm' + '-crm'/+ '-crm'/g\" $$SUBDOMAIN_FILE; done; grep -Fq \"randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)] + '-crm'\" $$SUBDOMAIN_FILE || sed -i \"s/randomSuffix = suffixes\\[Math.floor(Math.random() \\* suffixes.length)\\]/randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)] + '-crm'/g\" $$SUBDOMAIN_FILE; node dist/main"
+      sh -c "curl -sL -o /app/packages/twenty-server/dist/front/images/icons/android/android-launchericon-192-192.png https://mme.com.vn/wp-content/uploads/2023/01/mme-thiet-ke-website-logo-vuong.png || true; grep -q 'hide-enterprise' /app/packages/twenty-server/dist/front/index.html || sed -i 's|</head>|<style id=\"hide-enterprise\">a[href*=\"enterprise\"] { display: none !important; }</style></head>|' /app/packages/twenty-server/dist/front/index.html; SUBDOMAIN_FILE=/app/packages/twenty-server/dist/engine/core-modules/domain/subdomain-manager/utils/generate-random-subdomain.util.js; while grep -Fq \"+ '-crm' + '-crm'\" $$SUBDOMAIN_FILE; do sed -i \"s/+ '-crm' + '-crm'/+ '-crm'/g\" $$SUBDOMAIN_FILE; done; grep -Fq \"randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)] + '-crm'\" $$SUBDOMAIN_FILE || sed -i \"s/randomSuffix = suffixes\\[Math.floor(Math.random() \\* suffixes.length)\\]/randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)] + '-crm'/g\" $$SUBDOMAIN_FILE; for TWO_FA_CHUNK in /app/packages/twenty-server/dist/front/assets/SettingsTwoFactorAuthenticationMethod-*.js; do [ -f $$TWO_FA_CHUNK ] && sed -i 's/\.default,{value:/\.default.default,{value:/g' $$TWO_FA_CHUNK; done; node dist/main"
     volumes:
       - server-local-data-v8:/app/packages/twenty-server/.local-storage
     ports:
@@ -17,7 +17,7 @@ services:
       # Cloudflare Flexible terminates HTTPS and forwards HTTP to this router.
       # Only claim the CRM entrypoint and flattened workspace hosts so this
       # deployment does not steal every other *.mme.vn service in Dokploy.
-      - 'traefik.http.routers.mmetwenty-flat-crm.rule=Host(`crm.mme.vn`) || Host(`mme.mme.vn`) || HostRegexp(`^[a-z0-9-]+-crm\.mme\.vn$`)'
+      - 'traefik.http.routers.mmetwenty-flat-crm.rule=Host(`crm.mme.vn`) || Host(`mme.mme.vn`) || HostRegexp(`^[a-z0-9-]+crm\.mme\.vn$`)'
       - "traefik.http.routers.mmetwenty-flat-crm.entrypoints=web"
       - "traefik.http.routers.mmetwenty-flat-crm.priority=100"
       - "traefik.http.routers.mmetwenty-flat-crm.service=mmetwenty-flat-crm"

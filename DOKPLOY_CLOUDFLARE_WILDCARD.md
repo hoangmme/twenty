@@ -6,6 +6,7 @@ Tài liệu này mô tả cấu hình production hiện tại cho Twenty multi-w
 - Workspace MME hiện tại: `https://mme.mme.vn`
 - Workspace tự sinh: `https://<slug>-crm.mme.vn`
 - Ví dụ: `https://glad-mustard-llama-crm.mme.vn`
+- Workspace tùy chỉnh có label kết thúc bằng `crm`, ví dụ `https://nxhcrm.mme.vn`
 - Các dịch vụ không thuộc CRM như `ops.mme.vn` không bị router của deployment này bắt nhầm.
 
 ## Luồng request
@@ -83,7 +84,7 @@ Routing được khai báo trực tiếp trong [`docker-compose.yml`](./docker-c
 ```yaml
 labels:
   - "traefik.enable=true"
-  - 'traefik.http.routers.mmetwenty-flat-crm.rule=Host(`crm.mme.vn`) || Host(`mme.mme.vn`) || HostRegexp(`^[a-z0-9-]+-crm\.mme\.vn$`)'
+  - 'traefik.http.routers.mmetwenty-flat-crm.rule=Host(`crm.mme.vn`) || Host(`mme.mme.vn`) || HostRegexp(`^[a-z0-9-]+crm\.mme\.vn$`)'
   - "traefik.http.routers.mmetwenty-flat-crm.entrypoints=web"
   - "traefik.http.routers.mmetwenty-flat-crm.priority=100"
   - "traefik.http.routers.mmetwenty-flat-crm.service=mmetwenty-flat-crm"
@@ -94,7 +95,7 @@ Router chỉ nhận đúng ba nhóm:
 
 1. `crm.mme.vn`
 2. `mme.mme.vn`, workspace hiện tại được Twenty chọn theo subdomain `mme`.
-3. Hostname kết thúc bằng `-crm.mme.vn`.
+3. Hostname có label kết thúc bằng `crm`, gồm cả `*-crm.mme.vn` và `nxhcrm.mme.vn`.
 
 Nó không bắt toàn bộ `*.mme.vn`, nên có thể chạy song song với CRM hoặc ứng dụng khác trên cùng Dokploy.
 
@@ -158,6 +159,7 @@ Kiểm tra DNS:
 ```bash
 dig +short crm.mme.vn
 dig +short mme.mme.vn
+dig +short nxhcrm.mme.vn
 dig +short test-crm.mme.vn
 ```
 
@@ -166,6 +168,7 @@ Kiểm tra HTTP:
 ```bash
 curl -I https://crm.mme.vn/
 curl -I https://mme.mme.vn/
+curl -I https://nxhcrm.mme.vn/
 curl -I https://test-crm.mme.vn/
 ```
 
@@ -175,7 +178,7 @@ Nếu nhận `404 page not found` dạng text thuần, request thường đã qu
 - Compose đã redeploy sau khi thêm labels.
 - Service `server` đã nối vào `dokploy-network`.
 - Router dùng entrypoint `web` khi Cloudflare đang ở Flexible.
-- Hostname workspace là `mme.mme.vn` hoặc kết thúc bằng `-crm.mme.vn`.
+- Hostname workspace là `mme.mme.vn` hoặc có label kết thúc bằng `crm`.
 
 Nếu DNS không resolve, kiểm tra record `A` tên `*` và đảm bảo không có record cụ thể khác ghi đè hostname cần dùng.
 
