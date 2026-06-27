@@ -17,7 +17,7 @@ services:
       # Cloudflare Flexible terminates HTTPS and forwards HTTP to this router.
       # Only claim the CRM entrypoint and flattened workspace hosts so this
       # deployment does not steal every other *.mme.vn service in Dokploy.
-      - 'traefik.http.routers.mmetwenty-flat-crm.rule=Host(`crm.mme.vn`) || HostRegexp(`^[a-z0-9-]+-crm\.mme\.vn$`)'
+      - 'traefik.http.routers.mmetwenty-flat-crm.rule=Host(`crm.mme.vn`) || Host(`mme.mme.vn`) || HostRegexp(`^[a-z0-9-]+-crm\.mme\.vn$`)'
       - "traefik.http.routers.mmetwenty-flat-crm.entrypoints=web"
       - "traefik.http.routers.mmetwenty-flat-crm.priority=100"
       - "traefik.http.routers.mmetwenty-flat-crm.service=mmetwenty-flat-crm"

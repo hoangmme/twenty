@@ -3,15 +3,18 @@
 Tài liệu này mô tả cấu hình production hiện tại cho Twenty multi-workspace:
 
 - Trang đăng nhập chính: `https://crm.mme.vn`
+- Workspace MME hiện tại: `https://mme.mme.vn`
 - Workspace tự sinh: `https://<slug>-crm.mme.vn`
 - Ví dụ: `https://glad-mustard-llama-crm.mme.vn`
-- Các dịch vụ khác như `mme.mme.vn` không bị router của deployment này bắt nhầm.
+- Các dịch vụ không thuộc CRM như `ops.mme.vn` không bị router của deployment này bắt nhầm.
 
 ## Luồng request
 
 ```text
 Trình duyệt (HTTPS)
-  -> Cloudflare: DNS *.mme.vn + SSL rule *crm.mme.vn/*
+  -> Cloudflare: DNS *.mme.vn
+     + SSL rule *crm.mme.vn/*
+     + SSL rule mme.mme.vn/*
   -> HTTP port 80 tại server (SSL mode Flexible)
   -> Traefik của Dokploy
   -> service server, port 3000
@@ -48,10 +51,18 @@ SSL mode: Flexible
 Status: Enabled
 ```
 
-Pattern này nhận cả:
+Pattern `*crm.mme.vn/*` nhận cả:
 
 - `crm.mme.vn/*` vì dấu `*` có thể khớp chuỗi rỗng.
 - `glad-mustard-llama-crm.mme.vn/*` vì dấu `*` khớp phần `glad-mustard-llama-`.
+
+Workspace MME có hostname không kết thúc bằng `-crm`, nên thêm một rule riêng:
+
+```text
+URL pattern: mme.mme.vn/*
+SSL mode: Flexible
+Status: Enabled
+```
 
 Không cần dùng `*.mme.vn/*` cho SSL rule vì pattern đó rộng hơn cần thiết và có thể áp dụng Flexible cho các dịch vụ khác trong zone.
 
@@ -62,7 +73,7 @@ Không cần dùng `*.mme.vn/*` cho SSL rule vì pattern đó rộng hơn cần 
 Trong tab **Domains** của Compose deployment:
 
 ```text
-Để trống — không thêm *.mme.vn và không cần thêm crm.mme.vn
+Để trống — không thêm *.mme.vn, crm.mme.vn hoặc mme.mme.vn
 ```
 
 Không nhập `*.mme.vn` trong Dokploy UI. Domain UI có thể sinh rule dạng `Host(`*.mme.vn`)`, coi dấu `*` là ký tự literal và không khớp hostname thật. Kết quả thường là Traefik trả `404 page not found`.
@@ -72,17 +83,18 @@ Routing được khai báo trực tiếp trong [`docker-compose.yml`](./docker-c
 ```yaml
 labels:
   - "traefik.enable=true"
-  - 'traefik.http.routers.mmetwenty-flat-crm.rule=Host(`crm.mme.vn`) || HostRegexp(`^[a-z0-9-]+-crm\.mme\.vn$`)'
+  - 'traefik.http.routers.mmetwenty-flat-crm.rule=Host(`crm.mme.vn`) || Host(`mme.mme.vn`) || HostRegexp(`^[a-z0-9-]+-crm\.mme\.vn$`)'
   - "traefik.http.routers.mmetwenty-flat-crm.entrypoints=web"
   - "traefik.http.routers.mmetwenty-flat-crm.priority=100"
   - "traefik.http.routers.mmetwenty-flat-crm.service=mmetwenty-flat-crm"
   - "traefik.http.services.mmetwenty-flat-crm.loadbalancer.server.port=3000"
 ```
 
-Router chỉ nhận đúng hai nhóm:
+Router chỉ nhận đúng ba nhóm:
 
 1. `crm.mme.vn`
-2. Hostname kết thúc bằng `-crm.mme.vn`
+2. `mme.mme.vn`, workspace hiện tại được Twenty chọn theo subdomain `mme`.
+3. Hostname kết thúc bằng `-crm.mme.vn`.
 
 Nó không bắt toàn bộ `*.mme.vn`, nên có thể chạy song song với CRM hoặc ứng dụng khác trên cùng Dokploy.
 
@@ -110,6 +122,7 @@ Sau khi cập nhật Environment hoặc domain routing:
 3. Redeploy Compose để Dokploy nạp lại Traefik labels.
 4. Đợi `server`, `worker`, `db` và `redis` healthy.
 5. Mở `https://crm.mme.vn` và đăng ký hoặc đăng nhập lại.
+6. Nếu email thuộc workspace subdomain `mme`, Twenty sẽ chuyển sang `https://mme.mme.vn` và cùng router này vẫn xử lý request.
 
 Khi Twenty tạo workspace mới, không cần thêm DNS record hay domain Dokploy. Ví dụ workspace `glad-mustard-llama-crm` sẽ tự dùng:
 
@@ -144,6 +157,7 @@ Kiểm tra DNS:
 
 ```bash
 dig +short crm.mme.vn
+dig +short mme.mme.vn
 dig +short test-crm.mme.vn
 ```
 
@@ -151,6 +165,7 @@ Kiểm tra HTTP:
 
 ```bash
 curl -I https://crm.mme.vn/
+curl -I https://mme.mme.vn/
 curl -I https://test-crm.mme.vn/
 ```
 
@@ -160,7 +175,7 @@ Nếu nhận `404 page not found` dạng text thuần, request thường đã qu
 - Compose đã redeploy sau khi thêm labels.
 - Service `server` đã nối vào `dokploy-network`.
 - Router dùng entrypoint `web` khi Cloudflare đang ở Flexible.
-- Hostname workspace thật sự kết thúc bằng `-crm.mme.vn`.
+- Hostname workspace là `mme.mme.vn` hoặc kết thúc bằng `-crm.mme.vn`.
 
 Nếu DNS không resolve, kiểm tra record `A` tên `*` và đảm bảo không có record cụ thể khác ghi đè hostname cần dùng.
 
