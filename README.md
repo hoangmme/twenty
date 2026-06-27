@@ -72,6 +72,8 @@ See the [app development guide](https://docs.twenty.com/developers/extend/apps/g
 
 Run Twenty on your own infrastructure with [Docker Compose](https://docs.twenty.com/developers/self-host/capabilities/docker-compose), or contribute locally via the [local setup guide](https://docs.twenty.com/developers/contribute/capabilities/local-setup).
 
+MME deployment: see [Cloudflare and Dokploy wildcard setup](./DOKPLOY_CLOUDFLARE_WILDCARD.md) for routing `crm.mme.vn` and `*-crm.mme.vn`.
+
 <br />
 <br />
 
