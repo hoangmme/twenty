@@ -90,6 +90,7 @@ const bootstrap = async () => {
     '/graphql',
     graphqlUploadExpress({
       maxFieldSize: bytes(settings.storage.maxFileSize)!,
+      maxFileSize: bytes(settings.storage.maxFileSize)!,
       maxFiles: 10,
     }),
   );
@@ -98,6 +99,7 @@ const bootstrap = async () => {
     '/metadata',
     graphqlUploadExpress({
       maxFieldSize: bytes(settings.storage.maxFileSize)!,
+      maxFileSize: bytes(settings.storage.maxFileSize)!,
       maxFiles: 10,
     }),
   );
