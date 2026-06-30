@@ -27,20 +27,25 @@ export const useSettingsSubdomain = () => {
     currentWorkspaceState,
   );
 
-  const [subdomain, setSubdomain] = useState(currentWorkspace?.subdomain ?? '');
+  const formatInitialSubdomain = (sub: string | undefined) => {
+    if (!sub) return '';
+    return sub.endsWith('crm') ? sub.slice(0, -3) : sub;
+  };
+
+  const [subdomain, setSubdomain] = useState(formatInitialSubdomain(currentWorkspace?.subdomain));
   const [error, setError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (value: string) => {
     setSubdomain(value);
 
-    const result = subdomainSchema.safeParse(value);
+    const result = subdomainSchema.safeParse(value + 'crm');
 
     setError(result.success ? undefined : result.error.issues[0].message);
   };
 
-  const hasChanged = subdomain !== currentWorkspace?.subdomain;
-  const isSaveDisabled = !hasChanged || isDefined(error) || isSubmitting;
+  const hasChanged = subdomain !== formatInitialSubdomain(currentWorkspace?.subdomain);
+  const isSaveDisabled = !hasChanged || isDefined(error) || isSubmitting || !subdomain.trim();
 
   const handleSave = () => {
     if (isDefined(currentWorkspace)) {
@@ -53,10 +58,12 @@ export const useSettingsSubdomain = () => {
       return;
     }
 
+    const finalSubdomain = subdomain.trim() + 'crm';
+
     setIsSubmitting(true);
     updateWorkspace({
       variables: {
-        input: { subdomain },
+        input: { subdomain: finalSubdomain },
       },
       onError: (mutationError) => {
         if (
@@ -81,9 +88,9 @@ export const useSettingsSubdomain = () => {
 
         currentUrl.hostname = new URL(
           currentWorkspace.workspaceUrls.subdomainUrl,
-        ).hostname.replace(currentWorkspace.subdomain, subdomain);
+        ).hostname.replace(currentWorkspace.subdomain, finalSubdomain);
 
-        setCurrentWorkspace({ ...currentWorkspace, subdomain });
+        setCurrentWorkspace({ ...currentWorkspace, subdomain: finalSubdomain });
         enqueueSuccessSnackBar({ message: t`Subdomain updated` });
         setIsSubmitting(false);
 

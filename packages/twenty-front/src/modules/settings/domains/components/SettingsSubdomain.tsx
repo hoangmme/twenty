@@ -78,7 +78,7 @@ export const SettingsSubdomain = () => {
                 disabled={!!currentWorkspace?.customDomain}
                 rightAdornment={
                   isDefined(domainConfiguration.frontDomain)
-                    ? `.${domainConfiguration.frontDomain}`
+                    ? `crm.${domainConfiguration.frontDomain}`
                     : undefined
                 }
                 fullWidth
