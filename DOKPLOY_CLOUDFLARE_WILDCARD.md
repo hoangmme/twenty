@@ -108,7 +108,11 @@ SERVER_URL=https://mme.vn
 IS_MULTIWORKSPACE_ENABLED=true
 DEFAULT_SUBDOMAIN=crm
 IS_WORKSPACE_CREATION_LIMITED_TO_SERVER_ADMINS=true
+TRUST_PROXY=true
+AUTH_COOKIE_ALLOWED_ORIGINS=https://mycrm.mme.vn,https://crm.mme.vn,https://mme.mme.vn,https://mme.vn
 ```
+
+> **Quan trọng về Cookie & Proxy:** Bản Twenty v2.39+ chuyển sang xác thực bằng session cookie (`__Host-twenty-session`) kèm CSRF guard. Khi chạy sau Cloudflare Flexible và Traefik, nếu không có `TRUST_PROXY=true`, Express coi request protocol là `http`, không khớp với Origin `https` của trình duyệt dẫn đến lỗi `Refused to issue a session cookie to origin ...` (FORBIDDEN_EXCEPTION / "You do not have permission to perform this action."). Biến `AUTH_COOKIE_ALLOWED_ORIGINS` cho phép khai báo danh sách whitelist origin bổ sung cho cookie session.
 
 Không đặt `SERVER_URL=https://crm.mme.vn`. Với multi-workspace, Twenty tự nối `DEFAULT_SUBDOMAIN` hoặc workspace subdomain vào hostname của `SERVER_URL`.
 
